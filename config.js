@@ -1,7 +1,7 @@
 /*
  * Configuración de la app.
  *
- * MODO COMPARTIDO: pegue en `firebase` el objeto firebaseConfig del proyecto
+ * MODO COMPARTIDO (activo, proyecto davinci-soriano): pegue en `firebase` el objeto firebaseConfig del proyecto
  *   (Firebase → Configuración del proyecto → Tus apps → Web). Los datos viven en
  *   Firestore y los ven los usuarios autorizados según firestore.rules. Cada
  *   persona entra con su cuenta de Google. Estos valores no son secretos: la
@@ -19,5 +19,12 @@ window.APP_CONFIG = {
      Revisoría Fiscal) se asignan dentro de la app: Datos → Usuarios y perfiles. */
   editores: ["aldairmelot@gmail.com", "aldair.melot@gmail.com"],
 
-  firebase: null,
+  firebase: {
+    apiKey: "AIzaSyBW8980Fud3IU-kR4CLW3a-iOOGHp-ULwI",
+    authDomain: "davinci-soriano.firebaseapp.com",
+    projectId: "davinci-soriano",
+    storageBucket: "davinci-soriano.firebasestorage.app",
+    messagingSenderId: "1017845239068",
+    appId: "1:1017845239068:web:b5df793ed8e75d10b53ed9",
+  },
 };

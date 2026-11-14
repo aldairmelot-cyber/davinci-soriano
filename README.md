@@ -33,7 +33,7 @@ El PDF del reglamento articulado (`reglamento_articulado.pdf`, 15 MB) se sube ap
 4. **Firestore → Reglas**: pegue el contenido de `firestore.rules` y pulse **Publicar**.
 5. **Configuración del proyecto → Tus apps → Web (`</>`)**: registre la app y copie el objeto `firebaseConfig` en `config.js`, en el campo `firebase`.
 
-Mientras `firebase` sea `null`, la app funciona en modo local (datos solo en el navegador). Para ver cómo la ve cada perfil, agregue `?perfil=asistente`, `?perfil=admin` o `?perfil=revisor` a la dirección.
+Esta instalación usa el proyecto Firebase `davinci-soriano` (cuenta aldairmelot@gmail.com). Si `firebase` fuera `null`, la app funciona en modo local (datos solo en el navegador). Para ver cómo la ve cada perfil, agregue `?perfil=asistente`, `?perfil=admin` o `?perfil=revisor` a la dirección.
 
 ## Pasar los datos desde Claude
 
