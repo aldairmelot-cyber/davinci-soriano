@@ -384,7 +384,8 @@
   .pf-chip>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .pf-chip button{border:0;background:#f6eedf;color:#8a5d21;border-radius:99px;padding:3px 10px;cursor:pointer;font:inherit;font-weight:600;white-space:nowrap}
   .pf-chip button:disabled{opacity:.6;cursor:progress}
-  @media print{.pf-chip,.pf-portada{display:none!important}}`;
+  .pf-inst{position:fixed;left:12px;bottom:12px;z-index:10000;border:0;background:#a91c22;color:#fff;border-radius:99px;padding:8px 16px;font:600 13.5px "Source Sans 3","Segoe UI",sans-serif;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+  @media print{.pf-chip,.pf-portada,.pf-inst{display:none!important}}`;
   function estilos() { if (document.getElementById("pf-css")) return; const s = document.createElement("style"); s.id = "pf-css"; s.textContent = CSS; document.head.appendChild(s); }
   const alCargar = (f) => (document.body ? f() : document.addEventListener("DOMContentLoaded", f));
 
@@ -487,6 +488,30 @@
     });
   }
   const escapar = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+
+  /* ------------------------------------------------------------------ instalar la app */
+  /* Botón "Instalar app" (Chrome y Edge en Windows, Mac y Android). En iPhone se explica
+     cómo agregarla a la pantalla de inicio desde Safari. No aparece si ya está instalada. */
+  (function instalar() {
+    const yaInstalada = () => { try { return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch (e) { return false; } };
+    if (yaInstalada()) return;
+    let aviso = null, btn = null;
+    const quitar = () => { if (btn) { btn.remove(); btn = null; } };
+    const poner = (texto, accion) => alCargar(() => {
+      estilos(); quitar();
+      btn = document.createElement("button");
+      btn.type = "button"; btn.className = "pf-inst"; btn.textContent = texto; btn.onclick = accion;
+      document.body.appendChild(btn);
+    });
+    addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault(); aviso = e;
+      poner("⬇ Instalar app", async () => { if (!aviso) return; aviso.prompt(); try { await aviso.userChoice; } catch (x) {} aviso = null; quitar(); });
+    });
+    addEventListener("appinstalled", quitar);
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
+    if (ios) poner("⬇ Instalar app", () => alert("En el iPhone o iPad: toque el botón Compartir (el cuadro con la flecha) y luego «Agregar a inicio»."));
+  })();
 
   /* ------------------------------------------------------------------ API pública */
   let dbLocal = null, userP = null, assetsP = null;
