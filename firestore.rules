@@ -1,0 +1,69 @@
+rules_version = '2';
+
+// Perfiles de Estados Financieros · Edificio Davinci Soriano P.H.
+//  - editor (contador): los correos de la lista editor() (deben coincidir con `editores` en config.js).
+//    Lee y escribe todo.
+//  - Los demás se agregan en la app (Datos → Usuarios y perfiles) y quedan en _roles/<correo>:
+//      asistente → solo Cartera y Bancos: lee y carga cartera y conciliaciones bancarias.
+//      admin     → Administración: consulta toda la información, no modifica nada.
+//      revisor   → Revisoría Fiscal: consulta toda la información, no modifica nada.
+// Pegue este texto en Firebase → Firestore Database → Reglas y pulse Publicar.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function autenticado() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function correo() {
+      return request.auth.token.email.lower();
+    }
+    function editor() {
+      return autenticado() && correo() in [
+        'aldairmelot@gmail.com',
+        'aldair.melot@gmail.com'
+      ];
+    }
+    function tieneRol() {
+      return autenticado() && exists(/databases/$(database)/documents/_roles/$(correo()));
+    }
+    function perfil() {
+      return get(/databases/$(database)/documents/_roles/$(correo())).data.rol;
+    }
+    function consulta() {
+      return tieneRol() && perfil() in ['admin', 'revisor'];
+    }
+    function asistente() {
+      return tieneRol() && perfil() == 'asistente';
+    }
+    // Lo que el asistente puede leer y cargar.
+    function colAsistente() {
+      return ['cartera', 'cartera_c', 'cartera_p', 'conc'];
+    }
+    function cfgAsistente() {
+      return ['cartelera', 'consignaciones', 'juridico', 'conc'];
+    }
+
+    // Perfiles: cada persona lee el suyo; solo el editor los asigna.
+    match /_roles/{email} {
+      allow read: if editor() || (autenticado() && correo() == email);
+      allow write: if editor();
+    }
+    // Nombres de quienes entran (para mostrar quién cargó cada periodo).
+    match /_usuarios/{uid} {
+      allow read: if editor() || tieneRol();
+      allow write: if editor() || (tieneRol() && request.auth.uid == uid);
+    }
+    // Configuración: todos leen la de la entidad (nombre, NIT, logo); el asistente
+    // además lee y modifica la de cartelera, consignaciones, cobro jurídico y bancos.
+    match /config/{id} {
+      allow read: if editor() || consulta() || (asistente() && (id == 'entidad' || id in cfgAsistente()));
+      allow write: if editor() || (asistente() && id in cfgAsistente());
+    }
+    // Todo lo demás.
+    match /{col}/{doc=**} {
+      allow read: if col != '_roles' && col != '_usuarios' && col != 'config'
+        && (editor() || consulta() || (asistente() && col in colAsistente()));
+      allow write: if col != '_roles' && col != '_usuarios' && col != 'config'
+        && (editor() || (asistente() && col in colAsistente()));
+    }
+  }
+}
