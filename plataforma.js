@@ -385,6 +385,7 @@
   .pf-chip button{border:0;background:#f6eedf;color:#8a5d21;border-radius:99px;padding:3px 10px;cursor:pointer;font:inherit;font-weight:600;white-space:nowrap}
   .pf-chip button:disabled{opacity:.6;cursor:progress}
   .pf-inst{position:fixed;left:12px;bottom:12px;z-index:10000;border:0;background:#a91c22;color:#fff;border-radius:99px;padding:8px 16px;font:600 13.5px "Source Sans 3","Segoe UI",sans-serif;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+  .pf-chip button.pf-inst-chip{background:#a91c22;color:#fff}
   @media print{.pf-chip,.pf-portada,.pf-inst{display:none!important}}`;
   function estilos() { if (document.getElementById("pf-css")) return; const s = document.createElement("style"); s.id = "pf-css"; s.textContent = CSS; document.head.appendChild(s); }
   const alCargar = (f) => (document.body ? f() : document.addEventListener("DOMContentLoaded", f));
@@ -503,6 +504,15 @@
       btn = document.createElement("button");
       btn.type = "button"; btn.className = "pf-inst"; btn.textContent = texto; btn.onclick = accion;
       document.body.appendChild(btn);
+      /* Cuando aparece la barra inferior (después de iniciar sesión), el botón pasa a ella para no
+         tapar nada; antes de eso queda flotando abajo a la izquierda. */
+      const b = btn, mover = () => {
+        const chip = document.querySelector(".pf-chip");
+        if (!chip || !b.isConnected) return false;
+        b.className = "pf-inst-chip"; chip.insertBefore(b, chip.querySelector('[data-a="act"]'));
+        return true;
+      };
+      if (!mover()) { const ob = new MutationObserver(() => { if (mover() || !b.isConnected) ob.disconnect(); }); ob.observe(document.body, { childList: true }); }
     });
     /* Pasos manuales según el navegador, para cuando el navegador no ofrece la instalación directa
        (por ejemplo, si antes se cerró o se ignoró su aviso de instalar). */
