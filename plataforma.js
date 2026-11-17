@@ -504,13 +504,38 @@
       btn.type = "button"; btn.className = "pf-inst"; btn.textContent = texto; btn.onclick = accion;
       document.body.appendChild(btn);
     });
-    addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault(); aviso = e;
-      poner("⬇ Instalar app", async () => { if (!aviso) return; aviso.prompt(); try { await aviso.userChoice; } catch (x) {} aviso = null; quitar(); });
-    });
+    /* Pasos manuales según el navegador, para cuando el navegador no ofrece la instalación directa
+       (por ejemplo, si antes se cerró o se ignoró su aviso de instalar). */
+    const ua = navigator.userAgent;
+    const ios = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+    const android = /android/i.test(ua);
+    const edge = /edg\//i.test(ua);
+    const pasos = () => {
+      if (ios) return ["Abra esta página en <b>Safari</b>.", "Toque el botón <b>Compartir</b> (el cuadro con la flecha hacia arriba).", "Elija <b>Agregar a inicio</b> y luego <b>Agregar</b>."];
+      if (android) return ["Toque el menú <b>⋮</b> (arriba a la derecha).", "Elija <b>Instalar app</b> o <b>Agregar a la pantalla principal</b>.", "Confirme con <b>Instalar</b>."];
+      if (edge) return ["Haga clic en el menú <b>…</b> (arriba a la derecha).", "Elija <b>Aplicaciones</b> → <b>Instalar este sitio como una aplicación</b>.", "Confirme con <b>Instalar</b>."];
+      return ["Haga clic en el menú <b>⋮</b> de Chrome (arriba a la derecha).", "Elija <b>Transmitir, guardar y compartir</b> → <b>Instalar página como app…</b>", "Confirme con <b>Instalar</b>. La app queda en el escritorio, en el menú Inicio y en la barra de tareas."];
+    };
+    const ayuda = () => {
+      if (document.getElementById("pf-ayuda")) return;
+      const d = document.createElement("div");
+      d.id = "pf-ayuda"; d.className = "pf-portada";
+      d.innerHTML = `<div class="pf-caja" style="text-align:left"><h2>Instalar la app</h2><ol style="margin:0 0 16px;padding-left:20px;color:#262a33">${pasos().map((p) => `<li style="margin-bottom:6px">${p}</li>`).join("")}</ol><div style="text-align:center"><button class="pf-btn" type="button">Entendido</button></div></div>`;
+      const cerrar = () => d.remove();
+      d.querySelector("button").onclick = cerrar;
+      d.onclick = (ev) => { if (ev.target === d) cerrar(); };
+      document.body.appendChild(d);
+    };
+    const instalarAhora = async () => {
+      if (!aviso) return ayuda();
+      const a = aviso; aviso = null;
+      try { a.prompt(); const r = await a.userChoice; if (r && r.outcome === "accepted") quitar(); } catch (x) { ayuda(); }
+    };
+    addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); aviso = e; });
     addEventListener("appinstalled", quitar);
-    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
-    if (ios) poner("⬇ Instalar app", () => alert("En el iPhone o iPad: toque el botón Compartir (el cuadro con la flecha) y luego «Agregar a inicio»."));
+    /* El botón aparece siempre que la app no esté instalada: si el navegador lo permite, instala
+       con un clic; si no, muestra los pasos. */
+    poner("⬇ Instalar app", instalarAhora);
   })();
 
   /* ------------------------------------------------------------------ API pública */
