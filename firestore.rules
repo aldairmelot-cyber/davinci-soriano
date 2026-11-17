@@ -19,7 +19,8 @@ service cloud.firestore {
     function editor() {
       return autenticado() && correo() in [
         'aldairmelot@gmail.com',
-        'aldair.melot@gmail.com'
+        'aldair.melot@gmail.com',
+        'davincisorianoedificio@gmail.com'
       ];
     }
     function tieneRol() {

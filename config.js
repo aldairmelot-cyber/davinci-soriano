@@ -17,7 +17,7 @@ window.APP_CONFIG = {
   /* Correos con perfil de edición (el contador). Deben coincidir con la lista
      `editor()` de firestore.rules. Los demás perfiles (Asistente, Administración,
      Revisoría Fiscal) se asignan dentro de la app: Datos → Usuarios y perfiles. */
-  editores: ["aldairmelot@gmail.com", "aldair.melot@gmail.com"],
+  editores: ["aldairmelot@gmail.com", "aldair.melot@gmail.com", "davincisorianoedificio@gmail.com"],
 
   firebase: {
     apiKey: "AIzaSyBW8980Fud3IU-kR4CLW3a-iOOGHp-ULwI",
