@@ -889,52 +889,47 @@ function zdInforme(cfg,X){let{corte,anio,base,mk,nomC,libro,ceros,meses}=X,ent=c
  let porTer=xs=>{let m=new Map;for(let i of xs)(m.get(i.t)??m.set(i.t,[]).get(i.t)).push(i);return[...m.entries()].map(([t,its])=>{its.sort((a,b)=>a.f<b.f?-1:1);return{t,its,s:suma(its),f0:its[0].f,d:Math.max(...its.map(i=>i.d))}}).sort((a,b)=>Math.abs(b.s)-Math.abs(a.s))};
  let TC=porTer(C),TP=porTer(P),sit=d=>d>365?"Más de 1 año":d>180?"181 a 365 días":d>90?"91 a 180 días":"Hasta 90 días";
  let mesTxt=k=>zcMesTxt(k).toLowerCase(),B=[];let P_=(t,e="normal")=>B.push({tipo:"parrafo",estilo:e,texto:t});
- P_("1. Objetivo","h3");
- P_(`Presentar a la Revisoría Fiscal los saldos abiertos de las cuentas por cobrar a proveedores (anticipos, cuenta 1330) y de las cuentas por pagar a proveedores y acreedores (cuentas 2205, 2335 y 2380) de la ${ent}, con corte al ${zcF(corte)}, identificando por tercero y por concepto las partidas que permanecen sin cruzar, su antigüedad y las que requieren depuración.`);
- P_("2. Alcance y metodología","h3");
- P_(`La información se tomó del libro auxiliar de la copropiedad entre ${mesTxt(meses[0])} y ${mesTxt(meses[meses.length-1])}. Para cada cuenta y cada tercero se aplicaron los pagos, cruces y legalizaciones a las partidas más antiguas (primero en entrar, primero en salir); las partidas que se presentan son las que siguen abiertas al corte. Lo pagado, cruzado o legalizado no se incluye.`);
- P_("La antigüedad de cada partida se mide en días, desde su fecha de registro hasta la fecha de corte.");
- ceros.length&&P_(`Las cuentas ${ceros.join(", ")} presentan saldo cero en libros. Por tercero muestran diferencias porque los aportes causados a cada trabajador se pagaron con el NIT del edificio; no constituyen saldos por depurar y no se incluyen en este informe.`);
- P_("3. Resumen de saldos","h3");
+ P_(`Relacionamos los saldos de anticipos a proveedores (cuenta 1330) y de cuentas por pagar a proveedores y acreedores (cuentas 2205, 2335 y 2380) que estaban abiertos al ${zcF(corte)}, tomados del libro auxiliar, para su revisión y depuración. Los valores ya pagados, cruzados o legalizados no aparecen; lo que se relaciona es lo que sigue pendiente en cada tercero.`);
+ ceros.length&&P_(`No se ${ceros.length>1?"incluyen las cuentas "+ceros.join(", ")+": están":"incluye la cuenta "+ceros[0]+": está"} en cero en libros. Por tercero muestran saldos porque los aportes de nómina se causaron a nombre de cada trabajador y se pagaron con el NIT del edificio.`);
+ P_("Saldos por cuenta","h3");
  let ctas=l=>[...new Set(base.filter(i=>i.lado===l).map(i=>i.c))].sort(),fila=(c,xs)=>({estilo:"detalle",celdas:[zjC(c+" · "+(nomC(c)||"").toLowerCase().replace(/^\w/,x=>x.toUpperCase())),zjC(String(new Set(xs.map(i=>i.t)).size)),zjC(String(xs.length)),zjP(suma(xs)),zjP(suma(old(xs)))]});
- let res=[{estilo:"grupo",celdas:[zjC("CUENTAS POR COBRAR A PROVEEDORES",{bold:!0}),zjC(""),zjC(""),zjC(""),zjC("")]},...ctas("cobrar").map(c=>fila(c,C.filter(i=>i.c===c))),{estilo:"subtotal",celdas:[zjC("Total por cobrar",{bold:!0}),zjC(String(TC.length)),zjC(String(C.length)),zjP(suma(C),{bold:!0}),zjP(suma(old(C)),{bold:!0})]},
-  {estilo:"grupo",celdas:[zjC("CUENTAS POR PAGAR A PROVEEDORES Y ACREEDORES",{bold:!0}),zjC(""),zjC(""),zjC(""),zjC("")]},...ctas("pagar").map(c=>fila(c,P.filter(i=>i.c===c))),{estilo:"subtotal",celdas:[zjC("Total por pagar",{bold:!0}),zjC(String(TP.length)),zjC(String(P.length)),zjP(suma(P),{bold:!0}),zjP(suma(old(P)),{bold:!0})]}];
+ let res=[{estilo:"grupo",celdas:[zjC("ANTICIPOS A PROVEEDORES",{bold:!0}),zjC(""),zjC(""),zjC(""),zjC("")]},...ctas("cobrar").map(c=>fila(c,C.filter(i=>i.c===c))),{estilo:"subtotal",celdas:[zjC("Total por cobrar",{bold:!0}),zjC(String(TC.length)),zjC(String(C.length)),zjP(suma(C),{bold:!0}),zjP(suma(old(C)),{bold:!0})]},
+  {estilo:"grupo",celdas:[zjC("CUENTAS POR PAGAR",{bold:!0}),zjC(""),zjC(""),zjC(""),zjC("")]},...ctas("pagar").map(c=>fila(c,P.filter(i=>i.c===c))),{estilo:"subtotal",celdas:[zjC("Total por pagar",{bold:!0}),zjC(String(TP.length)),zjC(String(P.length)),zjP(suma(P),{bold:!0}),zjP(suma(old(P)),{bold:!0})]}];
  B.push({tipo:"tabla",columnas:[{titulo:"CUENTA",ancho:40,alin:"left"},{titulo:"TERCEROS",ancho:11,alin:"right"},{titulo:"PARTIDAS",ancho:11,alin:"right"},{titulo:"SALDO",ancho:19,alin:"right"},{titulo:`DE ${anio-1} Y\nANTERIORES`,ancho:19,alin:"right"}],filas:res,cabecera:!0});
  let dif=[...ctas("cobrar"),...ctas("pagar")].filter(c=>Math.abs(base.filter(i=>i.c===c).reduce((s,i)=>s+i.v,0)-(libro[c]??0))>=1);
- P_(dif.length?`Los saldos por tercero difieren del saldo en libros en las cuentas ${dif.join(", ")}; debe revisarse.`:"La suma de los saldos por tercero coincide con el saldo de cada cuenta en el libro auxiliar.");
- P_("4. Antigüedad de los saldos","h3");
+ dif.length&&P_(`Los saldos por tercero no coinciden con el saldo en libros en las cuentas ${dif.join(", ")}.`);
+ P_("Antigüedad","h3");
  let R=[[0,90],[90,180],[180,365],[365,1e9]],rot=["Hasta 90 días","91 a 180 días","181 a 365 días","Más de 1 año"],en_=(xs,a,b)=>suma(xs.filter(i=>i.d>a-(a?0:1)&&i.d<=b)),pc=(v,t)=>t?(v/t*100).toFixed(1).replace(".",",")+" %":"-";
  B.push({tipo:"tabla",columnas:[{titulo:"ANTIGÜEDAD",ancho:28,alin:"left"},{titulo:"POR COBRAR",ancho:20,alin:"right"},{titulo:"%",ancho:12,alin:"right"},{titulo:"POR PAGAR",ancho:20,alin:"right"},{titulo:"%",ancho:12,alin:"right"}],cabecera:!0,filas:[...R.map(([a,b],j)=>{let vc=en_(C,a,b),vp=en_(P,a,b);return{estilo:"detalle",celdas:[zjC(rot[j]),zjP(vc),zjC(pc(vc,suma(C))),zjP(vp),zjC(pc(vp,suma(P)))]}}),{estilo:"subtotal",celdas:[zjC("Total",{bold:!0}),zjP(suma(C),{bold:!0}),zjC("100 %"),zjP(suma(P),{bold:!0}),zjC("100 %")]}]});
  let tabTer=TT=>({tipo:"tabla",columnas:[{titulo:"TERCERO",ancho:44,alin:"left"},{titulo:"PARTIDAS",ancho:10,alin:"right"},{titulo:"SALDO",ancho:17,alin:"right"},{titulo:"DESDE",ancho:13,alin:"left"},{titulo:"ANTIGÜEDAD",ancho:16,alin:"left"}],cabecera:!0,filas:[...TT.map(x=>({estilo:"detalle",celdas:[zjC(x.t),zjC(String(x.its.length)),zjP(x.s),zjC(zcF(x.f0)),zjC(sit(x.d))]})),{estilo:"subtotal",celdas:[zjC(`Total (${TT.length} terceros)`,{bold:!0}),zjC(String(TT.reduce((s,x)=>s+x.its.length,0))),zjP(TT.reduce((s,x)=>s+x.s,0),{bold:!0}),zjC(""),zjC("")]}]});
- P_("5. Cuentas por cobrar a proveedores (anticipos · 1330)","h3");
- P_(`Al corte, ${TC.length} terceros adeudan a la copropiedad ${M(suma(C))} por anticipos pendientes de legalizar, mayores valores pagados, retenciones no descontadas y otros conceptos por reintegrar. El detalle de cada partida está en el Anexo 1.`);
+ P_("Anticipos a proveedores (1330)","h3");
+ P_(`${TC.length} terceros deben ${M(suma(C))} entre anticipos sin legalizar, pagos de más y retenciones no descontadas. El detalle por partida va en el anexo.`);
  TC.length&&B.push(tabTer(TC));
- P_("6. Cuentas por pagar a proveedores y acreedores","h3");
- P_(`Al corte, la copropiedad adeuda ${M(suma(P))} a ${TP.length} terceros por facturas y obligaciones pendientes de pago. El detalle de cada partida está en el Anexo 1.`);
+ P_("Cuentas por pagar","h3");
+ P_(`Se deben ${M(suma(P))} a ${TP.length} terceros. El detalle por partida va en el anexo.`);
  TP.length&&B.push(tabTer(TP));
- P_("7. Observaciones y partidas por depurar","h3");let n=0,ob=(t)=>{n++;P_(t,"vineta")};
+ P_("Saldos para depurar","h3");let n=0,ob=(t)=>{n++;P_(t,"vineta")};
  let ant=[...old(C),...old(P)].sort((a,b)=>a.f<b.f?-1:1);
- ant.length&&P_(`7.1 Partidas de ${anio-1} y vigencias anteriores (${ant.length} partidas por ${M(suma(old(C)))} por cobrar y ${M(suma(old(P)))} por pagar):`);
+ ant.length&&P_(`Vienen de ${anio-1} o antes (${M(suma(old(C)))} por cobrar y ${M(suma(old(P)))} por pagar):`);
  for(let i of ant)ob(`${i.t} — ${i.n||"sin concepto"} (${i.doc}, ${zcF(i.f)}, cuenta ${i.c}): ${i.contra?M(Math.abs(i.v))+" de saldo contrario":M(i.v)+(i.lado==="cobrar"?" por cobrar":" por pagar")}${mk[i.k]?.nota?". "+mk[i.k].nota:""}.`);
  let cruz=TC.filter(x=>TP.some(y=>y.t===x.t)).map(x=>({t:x.t,c:x.s,p:TP.find(y=>y.t===x.t).s}));
- cruz.length&&P_("7.2 Terceros que tienen saldo por cobrar y por pagar al mismo tiempo; procede evaluar el cruce de cuentas:");
+ cruz.length&&P_("Terceros a los que se les debe y que a la vez deben; se pueden cruzar:");
  for(let x of cruz)ob(`${x.t}: por cobrar ${M(x.c)} y por pagar ${M(x.p)}. Si se cruzan, queda ${x.p-x.c>=0?"por pagar":"por cobrar"} ${M(Math.abs(x.p-x.c))}.`);
  let con=base.filter(i=>i.contra);
- con.length&&P_("7.3 Saldos de naturaleza contraria (pagos en exceso o registros a nombre de otro tercero):");
+ con.length&&P_("Saldos al revés de la naturaleza de la cuenta (pagos de más o registrados a otro tercero):");
  for(let i of con)ob(`${i.t} — cuenta ${i.c}: ${M(Math.abs(i.v))} (${i.n||"sin concepto"}, ${zcF(i.f)}).`);
  let dep=base.filter(i=>est0(i)==="depurar");
- dep.length&&P_(`7.4 Partidas marcadas por la contaduría para depurar (${dep.length} por ${M(suma(dep))}):`);
+ dep.length&&P_(`Partidas que la contaduría ya marcó para depurar (${M(suma(dep))}):`);
  for(let i of dep)ob(`${i.t} — ${i.n||"sin concepto"} (${i.doc}, ${zcF(i.f)}): ${M(i.v)}${mk[i.k]?.nota?". "+mk[i.k].nota:""}.`);
  let m180=base.filter(i=>i.d>180&&+i.f.slice(0,4)>=anio);
- m180.length&&P_(`7.${[ant.length,cruz.length,con.length,dep.length].filter(Boolean).length+1} Además, ${m180.length} partidas de ${anio} superan 180 días sin cruzarse, por ${M(suma(m180))}; se recomienda su seguimiento.`);
- n||P_("No se identificaron partidas que requieran depuración.");
- P_("8. Conclusión","h3");
- P_(`De los ${M(suma(C))} por cobrar a proveedores y los ${M(suma(P))} por pagar con corte al ${zcF(corte)}, ${M(suma(old(C))+suma(old(P)))} corresponden a partidas de vigencias anteriores a ${anio}. Se recomienda obtener los soportes de legalización o reintegro de los anticipos antiguos, confirmar con los proveedores los saldos por pagar de vigencias anteriores, evaluar los cruces de los terceros que tienen saldos a favor y en contra, y registrar los ajustes que resulten con los soportes respectivos, que se pondrán a disposición de la Revisoría Fiscal.`);
- P_(`El presente informe se expide en ${cfg.ciudad||"Santa Marta"}, a los ${h.dia} días del mes de ${h.mes} de ${h.anio}.`);
+ m180.length&&P_(`Además hay ${m180.length} partidas de ${anio} con más de 180 días sin cruzar, por ${M(suma(m180))}.`);
+ n||P_("No hay saldos para depurar.");
+ P_("Quedamos atentos a sus comentarios.");
+ P_(`${cfg.ciudad||"Santa Marta"}, ${h.dia} de ${h.mes} de ${h.anio}.`);
  B.push({tipo:"firmas",sinRevisor:!0});
  let det=(TT,tit)=>{let fi=[];for(let x of TT){fi.push({estilo:"grupo",celdas:[zjC(x.t,{bold:!0}),zjC(""),zjC(""),zjC(""),zjP(x.s,{bold:!0}),zjC("")]});for(let i of x.its)fi.push({estilo:"detalle",celdas:[zjC((i.n||"Sin concepto")+(i.contra?" (saldo contrario)":"")+(mk[i.k]?.nota?"\nNota: "+mk[i.k].nota:"")),zjC(zcF(i.f)),zjC(i.doc),zjC(i.c),zjP(i.v),zjC(String(i.d))]})}fi.push({estilo:"subtotal",celdas:[zjC("Total",{bold:!0}),zjC(""),zjC(""),zjC(""),zjP(TT.reduce((s,x)=>s+x.s,0),{bold:!0}),zjC("")]});return[{tipo:"parrafo",estilo:"h3",texto:tit},{tipo:"tabla",columnas:[{titulo:"CONCEPTO",ancho:44,alin:"left"},{titulo:"FECHA",ancho:12,alin:"left"},{titulo:"DOCUMENTO",ancho:12,alin:"left"},{titulo:"CUENTA",ancho:10,alin:"left"},{titulo:"SALDO",ancho:14,alin:"right"},{titulo:"DÍAS",ancho:8,alin:"right"}],filas:fi,cabecera:!0}]};
- return{...zjDocBase(cfg),secciones:[{id:"dep_inf",nombre:"Informe",titulo:"INFORME DE DEPURACIÓN DE ANTICIPOS Y CUENTAS POR PAGAR",subtitulos:["Dirigido a la Revisoría Fiscal",`Saldos con corte al ${zcF(corte)}`],orientacion:"portrait",bloques:B},
-  {id:"dep_anx",nombre:"Anexo 1",titulo:"ANEXO 1 · DETALLE DE PARTIDAS ABIERTAS POR TERCERO",subtitulos:[`Saldos con corte al ${zcF(corte)}`],orientacion:"portrait",bloques:[...(TC.length?det(TC,"Cuentas por cobrar a proveedores (1330)"):[]),...(TP.length?det(TP,"Cuentas por pagar a proveedores y acreedores"):[])]}]}}
+ return{...zjDocBase(cfg),secciones:[{id:"dep_inf",nombre:"Informe",titulo:"DEPURACIÓN DE ANTICIPOS Y CUENTAS POR PAGAR",subtitulos:[`Saldos al ${zcF(corte)}`],orientacion:"portrait",bloques:B},
+  {id:"dep_anx",nombre:"Anexo 1",titulo:"ANEXO · DETALLE POR TERCERO",subtitulos:[`Saldos al ${zcF(corte)}`],orientacion:"portrait",bloques:[...(TC.length?det(TC,"Anticipos a proveedores (1330)"):[]),...(TP.length?det(TP,"Cuentas por pagar"):[])]}]}}
 
 function ZzDep({ses:e,config:cfg,notificar:a,soloLectura:sl,ir:q}){let h=Ve.createElement,[lista,sL]=(0,Ve.useState)(null),[mk,sM]=(0,Ve.useState)({}),[lado,sLado]=(0,Ve.useState)("cobrar"),[edad,sE]=(0,Ve.useState)("todas"),[bq,sB]=(0,Ve.useState)(""),[fe,sFe]=(0,Ve.useState)("todos"),[cta,sCta]=(0,Ve.useState)(""),[ord,sOrd]=(0,Ve.useState)({k:"s",asc:!1}),[sel,sSel]=(0,Ve.useState)(null),[gen,sG]=(0,Ve.useState)(null),[cer,sCer]=(0,Ve.useState)(!1);
 (0,Ve.useEffect)(()=>{e.store.list("aux").then(sL).catch(x=>{a("error","No se pudo leer el libro auxiliar: "+(x?.message??x));sL([])});e.store.get("config/depuracion").then(d=>sM(d?.marcas??{})).catch(()=>{})},[]);
@@ -967,7 +962,7 @@ let inf=()=>{let libro={};for(let x of D.mv){let c=String(x.c);libro[c]=(libro[c
 let ed=(t,xs)=>{let r=rangos(xs),s=suma(xs);return h("div",{className:"zd-ed"},h("span",{className:"l"},t),zdBarra(h,r),h("b",null,"$ "+pe(s)))};
 let S=sel?{t:sel,todas:base.filter(i=>i.t===sel)}:null;if(S&&!S.todas.length)S=null;
 return h("section",{className:"pantalla"},est,
- h("div",{className:"pantalla-enc"},h("div",null,h("h2",{className:"h-sec"},"Depuración de anticipos y cuentas por pagar"),h("p",{className:"lead"},`Saldos abiertos con proveedores y acreedores, por tercero y concepto, según el libro auxiliar al ${zcF(corte)}. Lo que ya se pagó, cruzó o legalizó no aparece.`)),h("div",{className:"fila",style:{gap:"8px",flexWrap:"wrap"}},h("button",{type:"button",className:"btn btn-primario",disabled:!!gen||!base.length,onClick:()=>dl("pdf","Informe_depuracion_anticipos_y_CxP_"+ult+".pdf",()=>en(inf()))},gen==="pdf"?"Generando…":"Informe para Revisoría (PDF)"),h("button",{type:"button",className:"btn",disabled:!!gen||!base.length,onClick:()=>dl("docx","Informe_depuracion_anticipos_y_CxP_"+ult+".docx",()=>Ls(inf()))},gen==="docx"?"Generando…":"Word"),h("button",{type:"button",className:"btn",disabled:!!gen||!vis.length,onClick:()=>dl("xlsx","Depuracion_saldos_"+ult+".xlsx",()=>Yn(fdoc()))},gen==="xlsx"?"Generando…":"Excel"))),
+ h("div",{className:"pantalla-enc"},h("div",null,h("h2",{className:"h-sec"},"Depuración de anticipos y cuentas por pagar"),h("p",{className:"lead"},`Saldos abiertos con proveedores y acreedores, por tercero y concepto, según el libro auxiliar al ${zcF(corte)}. Lo que ya se pagó, cruzó o legalizó no aparece.`)),h("div",{className:"fila",style:{gap:"8px",flexWrap:"wrap"}},h("button",{type:"button",className:"btn btn-primario",disabled:!!gen||!base.length,onClick:()=>dl("pdf","Informe_depuracion_anticipos_y_CxP_"+ult+".pdf",()=>en(inf()))},gen==="pdf"?"Generando…":"Informe PDF"),h("button",{type:"button",className:"btn",disabled:!!gen||!base.length,onClick:()=>dl("docx","Informe_depuracion_anticipos_y_CxP_"+ult+".docx",()=>Ls(inf()))},gen==="docx"?"Generando…":"Word"),h("button",{type:"button",className:"btn",disabled:!!gen||!vis.length,onClick:()=>dl("xlsx","Depuracion_saldos_"+ult+".xlsx",()=>Yn(fdoc()))},gen==="xlsx"?"Generando…":"Excel"))),
  h("div",{className:"kpis",style:{marginBottom:14}},
   h("button",{type:"button",className:"kpi clic"+(lado==="cobrar"?" destacado":""),onClick:()=>sLado("cobrar")},h("span",null,"Por cobrar a proveedores · 1330"),h("b",null,"$ "+pe(suma(C))),h("small",null,`${mC.size} terceros · ${C.length} partidas`)),
   h("button",{type:"button",className:"kpi clic"+(lado==="pagar"?" destacado":""),onClick:()=>sLado("pagar")},h("span",null,"Por pagar a proveedores y acreedores"),h("b",null,"$ "+pe(suma(P))),h("small",null,`${mP.size} terceros · ${P.length} partidas`)),
