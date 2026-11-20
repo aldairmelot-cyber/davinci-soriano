@@ -59,14 +59,6 @@ service cloud.firestore {
       allow read: if editor() || consulta() || (asistente() && (id == 'entidad' || id in cfgAsistente()));
       allow write: if editor() || (asistente() && id in cfgAsistente());
     }
-    // Hoja de trabajo de depuración del balance (depbal/<AAAA-MM>, _rf y _adm):
-    // el contador escribe todo; Revisoría Fiscal y Administración, solo sus observaciones.
-    match /depbal/{doc} {
-      allow read: if editor() || consulta();
-      allow write: if editor()
-        || (consulta() && perfil() == 'revisor' && doc.matches('.*_rf$'))
-        || (consulta() && perfil() == 'admin' && doc.matches('.*_adm$'));
-    }
     // Todo lo demás.
     match /{col}/{doc=**} {
       allow read: if col != '_roles' && col != '_usuarios' && col != 'config'

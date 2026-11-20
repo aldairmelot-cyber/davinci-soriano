@@ -25,7 +25,7 @@
   /* Colecciones de la app (para respaldar y restaurar). */
   const COLECCIONES = [
     "config", "mapeos", "periodos", "balances", "presupuesto", "presupuesto_notas", "ppto_def", "ppto_prop",
-    "retencion", "iva", "ica", "cartera", "cartera_c", "cartera_p", "aux", "conc", "depbal", "_usuarios", "_roles",
+    "retencion", "iva", "ica", "cartera", "cartera_c", "cartera_p", "aux", "conc", "_usuarios", "_roles",
   ];
 
   /* ------------------------------------------------------------------ perfiles */
@@ -46,9 +46,6 @@
     ruta = String(ruta);
     if (esEditor() || ruta.startsWith("_usuarios/")) return true;
     if (esAsistente()) return ASIS_COL.some((c) => ruta.startsWith(c + "/")) || ASIS_CFG.includes(ruta);
-    /* Hoja de trabajo de depuración: Revisoría Fiscal y Administración escriben solo sus observaciones. */
-    if (perfil.rol === "revisor") return /^depbal\/[^/]+_rf$/.test(ruta);
-    if (perfil.rol === "admin") return /^depbal\/[^/]+_adm$/.test(ruta);
     return false;
   };
   const sinPermiso = () => { const e = new Error("Su perfil no puede modificar esta información."); e.code = "not_granted"; return e; };
